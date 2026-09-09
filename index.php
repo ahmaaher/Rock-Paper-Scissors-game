@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_choice'])) {
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
         .card { background: white; max-width: 400px; margin: 0 auto; padding: 20px; border-radius: 20px; box-shadow: 10px 20px 55px rgba(0,0,0,0.5); }
-        .slot-screen { font-size: 2rem; font-weight: bold; margin: 20px 0; min-height: 50px; color: #0366d6; }
+        .slot-screen { font-size: 1.5rem; font-weight: bold; margin: 20px 0; min-height: 50px; color: #0366d6;}
         .result-box { font-size: 1.2rem; font-weight: bold; margin-top: 15px; color: #28a745; min-height: 30px; }
         table { margin: 20px auto 0; border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_choice'])) {
 <div class="card">
     <h2>Rock Paper Scissors</h2>
 
-    <form method="POST" id="gameForm">
+    <form method="POST" id="gameForm" onsubmit="disableGoBtn();">
         <label for="user_choice">Choose your move:</label><br>
         <select name="user_choice" id="user_choice" required>
             <option value="Rock" <?php if ($userChoice === 'Rock') echo 'selected'; ?>>Rock</option>
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_choice'])) {
     </form>
 
     <div class="slot-screen" id="slotScreen">
-        <?php echo $computerChoice ? $computerChoice : '???'; ?>
+        <?php echo $computerChoice ? $computerChoice : 'Computer choice: ???'; ?>
     </div>
 
     <div class="result-box" id="resultBox"></div>
@@ -118,52 +118,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_choice'])) {
 </div>
 
 <?php if (!empty($computerChoice)): ?>
-<script>
-    const choices = <?php echo json_encode($choices); ?>;
-    const finalChoice = "<?php echo $computerChoice; ?>";
-    const resultText = "<?php echo $resultMessage; ?>";
-    
-    //------------------------------------------------------------------------------------
-    // Pass the updated scores from PHP session to JavaScript variables
-    const newPlayerScore = <?php echo $_SESSION['player_score']; ?>;
-    const newComputerScore = <?php echo $_SESSION['computer_score']; ?>;
-    const newTiesScore = <?php echo $_SESSION['ties']; ?>;
-    //------------------------------------------------------------------------------------
+    <script>
+        const choices = <?php echo json_encode($choices); ?>;
+        const finalChoice = "<?php echo $computerChoice; ?>";
+        const resultText = "<?php echo $resultMessage; ?>";
+        
+        //------------------------------------------------------------------------------------
+        // Pass the updated scores from PHP session to JavaScript variables
+        const newPlayerScore = <?php echo $_SESSION['player_score']; ?>;
+        const newComputerScore = <?php echo $_SESSION['computer_score']; ?>;
+        const newTiesScore = <?php echo $_SESSION['ties']; ?>;
+        //------------------------------------------------------------------------------------
 
-    const slotScreen = document.getElementById('slotScreen');
-    const resultBox = document.getElementById('resultBox');
-    const playerScore = document.getElementById('playerScore');
-    const computerScore = document.getElementById('computerScore');
-    const tiesScore = document.getElementById('tiesScore');
+        const slotScreen = document.getElementById('slotScreen');
+        const resultBox = document.getElementById('resultBox');
+        const playerScore = document.getElementById('playerScore');
+        const computerScore = document.getElementById('computerScore');
+        const tiesScore = document.getElementById('tiesScore');
+        
+        // Disabling Go button during the slot-screen-random-choice-animation and re-enable it back at the end of cycleChoices() functoin.....
+        const goBtn = document.getElementById('goBtn');
+        goBtn.disabled = true;
 
-    let counter = 0;
-    let speed = 50; 
-    let totalRounds = 20; 
+        let counter = 0;
+        let speed = 50; 
+        let totalRounds = 20; 
 
-    function cycleChoices() {
-        slotScreen.innerText = choices[counter % choices.length];
-        counter++;
+        function cycleChoices() {
+            slotScreen.innerText = choices[counter % choices.length];
+            counter++;
 
-        if (counter < totalRounds) {
-            speed += 15; 
-            setTimeout(cycleChoices, speed);
-        } else {
-            // Lock in final choices and display text result
-            slotScreen.innerText = finalChoice;
-            resultBox.innerText = resultText;
+            if (counter < totalRounds) {
+                speed += 15; 
+                setTimeout(cycleChoices, speed);
+            } else {
+                // Lock in final choices and display text result
+                slotScreen.innerText = finalChoice;
+                resultBox.innerText = resultText;
 
-            //------------------------------------------------------------------------------------
-            // Update the scoreboard table ONLY when the animation completes
-            playerScore.innerText = newPlayerScore;
-            computerScore.innerText = newComputerScore;
-            tiesScore.innerText = newTiesScore;
-            //------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------
+                // Update the scoreboard table ONLY when the animation completes
+                playerScore.innerText = newPlayerScore;
+                computerScore.innerText = newComputerScore;
+                tiesScore.innerText = newTiesScore;
+                //------------------------------------------------------------------------------------
+
+                // Enabling the Go button when the slot-screen-random-choice-animation ends
+                goBtn.disabled = false;
+            }
         }
-    }
 
-    resultBox.innerText = "";
-    cycleChoices();
-</script>
+        cycleChoices();
+    </script>
 <?php endif; ?>
 
 </body>
